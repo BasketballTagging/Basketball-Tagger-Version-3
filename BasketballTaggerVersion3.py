@@ -116,7 +116,7 @@ if st.sidebar.button("Reset Game (clears log & selections)", type="secondary"):
 # ---------------------------
 # Main: Tagging & Metrics
 # ---------------------------
-st.title("🏀 Basketball Tagging Application")
+st.title("StFx MBB Tagger")
 
 if not ready_to_tag:
     st.warning("Select Opponent, Game Date, and Quarter in the sidebar to begin tagging.")
