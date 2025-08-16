@@ -4,7 +4,7 @@ from datetime import datetime, date
 from collections import defaultdict
 import re
 
-st.set_page_config(page_title="StFx MBB Tagger", layout="wide")
+st.set_page_config(page_title="StFx Mens Basketball Tagger", layout="wide")
 
 # ---------------------------
 # Session State & Utilities
@@ -116,7 +116,7 @@ if st.sidebar.button("Reset Game (clears log & selections)", type="secondary"):
 # ---------------------------
 # Main: Tagging & Metrics
 # ---------------------------
-st.title("StFx MBB Tagger")
+st.title("StFx Mens Basketball Tagger")
 
 if not ready_to_tag:
     st.warning("Select Opponent, Game Date, and Quarter in the sidebar to begin tagging.")
