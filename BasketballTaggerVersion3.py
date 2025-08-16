@@ -128,4 +128,110 @@ else:
 if not st.session_state["plays"]:
     st.info("Add at least one play in the sidebar to start tagging.")
 else:
-    st.subheader("Select a
+    st.subheader("Select a Play")
+    cols_per_row = 4
+    rows = (len(st.session_state["plays"]) + cols_per_row - 1) // cols_per_row
+    idx = 0
+    for r in range(rows):
+        row_cols = st.columns(cols_per_row)
+        for c in range(cols_per_row):
+            if idx >= len(st.session_state["plays"]):
+                break
+            play = st.session_state["plays"][idx]
+            if row_cols[c].button(play, key=f"play_btn_{idx}", use_container_width=True):
+                st.session_state["selected_play"] = play
+            idx += 1
+
+# Tagging actions for selected play
+if st.session_state["selected_play"]:
+    st.markdown(f"**Tagging:** `{st.session_state['selected_play']}`")
+    a, b, c, d, e, f = st.columns(6)
+    if a.button("Made 2", key="act_m2", use_container_width=True):
+        add_log(st.session_state["selected_play"], "Made 2")
+    if b.button("Made 3", key="act_m3", use_container_width=True):
+        add_log(st.session_state["selected_play"], "Made 3")
+    if c.button("Missed 2", key="act_x2", use_container_width=True):
+        add_log(st.session_state["selected_play"], "Missed 2")
+    if d.button("Missed 3", key="act_x3", use_container_width=True):
+        add_log(st.session_state["selected_play"], "Missed 3")
+    if e.button("Foul", key="act_fl", use_container_width=True):
+        add_log(st.session_state["selected_play"], "Foul")
+    if f.button("Undo Last", key="undo_last", use_container_width=True):
+        if st.session_state["log"]:
+            st.session_state["log"].pop()
+            st.toast("Last tag removed.")
+        else:
+            st.toast("No tags to undo.", icon="⚠️")
+
+st.markdown("---")
+
+# Build DataFrames
+log_df = pd.DataFrame(st.session_state["log"])
+metrics_df = compute_metrics(log_df) if not log_df.empty else pd.DataFrame(columns=["Play", "Attempts", "Points", "PPP", "Frequency", "Success Rate"])
+
+# Metrics table
+st.subheader("📊 Per Play Metrics")
+if metrics_df.empty:
+    st.info("No data yet — tag some plays to see metrics.")
+else:
+    st.dataframe(
+        metrics_df.style.format({
+            "PPP": "{:.2f}",
+            "Frequency": "{:.1%}",
+            "Success Rate": "{:.1%}"
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
+
+    # Quick visuals
+    left, right = st.columns(2)
+    with left:
+        st.caption("PPP by Play")
+        st.bar_chart(metrics_df.set_index("Play")["PPP"], use_container_width=True)
+    with right:
+        st.caption("Frequency by Play")
+        st.bar_chart(metrics_df.set_index("Play")["Frequency"], use_container_width=True)
+
+# Play-by-play table
+st.subheader("🧾 Play-by-Play Log")
+if log_df.empty:
+    st.info("No events logged yet.")
+else:
+    st.dataframe(log_df, use_container_width=True, hide_index=True)
+
+# Exports
+st.subheader("📥 Export")
+if st.button("Prepare Exports"):
+    st.session_state["__exports_ready"] = True
+
+if st.session_state.get("__exports_ready") and not log_df.empty:
+    opp = safe_filename(str(st.session_state["opponent"]))
+    gdt = safe_filename(str(st.session_state["game_date"]))
+    qtr = safe_filename(str(st.session_state["quarter"]))
+
+    metrics_csv = metrics_df.to_csv(index=False).encode("utf-8")
+    log_csv = log_df.to_csv(index=False).encode("utf-8")
+    json_blob = log_df.to_json(orient="records", indent=2).encode("utf-8")
+
+    st.download_button(
+        "Download Per-Play Metrics (CSV)",
+        data=metrics_csv,
+        file_name=f"{opp}_{gdt}_Q{qtr}_metrics.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
+    st.download_button(
+        "Download Play-by-Play (CSV)",
+        data=log_csv,
+        file_name=f"{opp}_{gdt}_Q{qtr}_playbyplay.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
+    st.download_button(
+        "Download Snapshot (JSON)",
+        data=json_blob,
+        file_name=f"{opp}_{gdt}_Q{qtr}_snapshot.json",
+        mime="application/json",
+        use_container_width=True
+    )
