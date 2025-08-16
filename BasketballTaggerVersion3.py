@@ -4,7 +4,7 @@ from datetime import datetime, date
 from collections import defaultdict
 import re
 
-st.set_page_config(page_title="Basketball Tagging App", layout="wide")
+st.set_page_config(page_title="StFx MBB Tagger", layout="wide")
 
 # ---------------------------
 # Session State & Utilities
